@@ -1,0 +1,2542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMPMS Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --green: #00703C;
+            --green-dark: #004d2b;
+            --green-light: #e8f5ee;
+            --gold: #C9982A;
+            --gold-light: #fdf6e3;
+            --red: #dc2626;
+            --red-light: #fef2f2;
+            --amber: #d97706;
+            --amber-light: #fffbeb;
+            --blue: #1d4ed8;
+            --blue-light: #eff6ff;
+            --dark: #0D1117;
+            --dark2: #161b22;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --sidebar-w: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--dark);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--gold), #e8b84b);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand-text .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .brand-text .sub {
+            font-size: 10px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .user-card {
+            padding: 16px 20px;
+            margin: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .user-card .name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-card .role-badge {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 10px;
+            background: rgba(201, 152, 42, 0.2);
+            color: var(--gold);
+            border-radius: 20px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-section {
+            padding: 8px 12px 4px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-radius: 0;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 13.5px;
+            border-left: 3px solid transparent;
+            margin: 1px 0;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(0, 112, 60, 0.25);
+            color: white;
+            border-left-color: var(--green);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item .badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--red);
+            color: white;
+        }
+
+        .nav-item .badge.warn {
+            background: var(--amber);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(220, 38, 38, 0.1);
+            color: #f87171;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background: rgba(220, 38, 38, 0.2);
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            color: var(--dark);
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--green-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .btn-export {
+            background: var(--gold-light);
+            color: var(--gold);
+            border: 1px solid #e8c96c;
+        }
+
+        .btn-export:hover {
+            background: var(--gold);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1px solid #fecaca;
+        }
+
+        .status-pane.active {
+            background: var(--green);
+            color: white;
+            border-color: var(--green-dark);
+        }
+
+        .content {
+            padding: 24px 28px;
+            flex: 1;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ALERTS BAR */
+        .alerts-container {
+            margin-bottom: 20px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13.5px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: var(--red-light);
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: var(--amber-light);
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .alert-info {
+            background: var(--blue-light);
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* KPI CARDS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .kpi-icon {
+            float: right;
+            font-size: 28px;
+            opacity: 0.8;
+        }
+
+        .kpi-card.green .kpi-value {
+            color: var(--green);
+        }
+
+        .kpi-card.red .kpi-value {
+            color: var(--red);
+        }
+
+        .kpi-card.gold .kpi-value {
+            color: var(--gold);
+        }
+
+        .kpi-card.blue .kpi-value {
+            color: var(--blue);
+        }
+
+        /* DATA TABLES */
+        .card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            background: #f8fafc;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.1s;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-inactive {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-dormant {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .badge-overdue {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .badge-paid {
+            background: #eff6ff;
+            color: var(--blue);
+        }
+
+        /* FILTERS */
+        .filter-bar {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 7px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+        }
+
+        .filter-input:focus {
+            border-color: var(--green);
+        }
+
+        select.filter-input {
+            cursor: pointer;
+        }
+
+        /* CHARTS */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 16px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 240px;
+        }
+
+        /* TARGETS */
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .target-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+        }
+
+        .target-metric {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .target-progress {
+            background: #f1f5f9;
+            border-radius: 20px;
+            height: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .target-bar {
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, var(--green), #00a85a);
+            transition: width 0.5s ease;
+        }
+
+        .target-bar.over {
+            background: linear-gradient(90deg, var(--red), #f87171);
+        }
+
+        .target-nums {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .target-pct {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .target-pct.over {
+            color: var(--red);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            width: 500px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--green);
+        }
+
+        /* PROJECTIONS */
+        .proj-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .proj-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .proj-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .proj-val {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .proj-change {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .advice-card {
+            background: linear-gradient(135deg, var(--green-light) 0%, #f0fdf4 100%);
+            border: 1px dashed var(--green);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 112, 60, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .advice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 112, 60, 0.08);
+        }
+
+        .advice-icon {
+            font-size: 32px;
+            background: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+
+        .advice-content {
+            flex: 1;
+        }
+
+        .advice-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .advice-text {
+            font-size: 14.5px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .advice-highlight {
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .proj-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* HIERARCHY */
+        .hier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 14px;
+        }
+
+        .hier-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hier-card:hover {
+            border-color: var(--green);
+            box-shadow: 0 4px 16px rgba(0, 112, 60, 0.1);
+        }
+
+        .hier-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .hier-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .hier-metrics {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .hier-metric .val {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .hier-metric .lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .amount {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .hier-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .hier-badge.zone {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .hier-badge.branch {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .hier-badge.rm {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .hier-drill {
+            margin-top: 12px;
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .hier-metric .val.red {
+            color: var(--red);
+        }
+
+        /* Breadcrumb */
+        .bc-item {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .bc-home {
+            background: var(--green-light);
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .bc-home:hover {
+            background: var(--green);
+            color: white;
+        }
+
+        .bc-link {
+            background: #f1f5f9;
+            color: var(--text-muted);
+        }
+
+        .bc-link:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .bc-current {
+            background: var(--dark);
+            color: white;
+            font-weight: 500;
+            cursor: default;
+        }
+
+        .bc-sep {
+            color: var(--text-muted);
+            font-size: 16px;
+            padding: 0 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🏦</div>
+            <div class="brand-text">
+                <div class="title">PMPMS</div>
+                <div class="sub">Nigeria</div>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <div class="name">{{ user.full_name }}</div>
+            <span class="role-badge">
+                {% if user.role == 'md' %}Managing Director
+                {% elif user.role == 'zonal_head' %}Zonal Head
+                {% elif user.role == 'branch_head' %}Branch Head
+                {% else %}Relationship Manager{% endif %}
+            </span>
+            {% if user.branch_name %}<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;">{{
+                user.branch_name }}</div>{% endif %}
+        </div>
+
+        <div class="nav-section">Overview</div>
+        <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('alerts')"><span class="nav-icon">🔔</span> Alerts <span class="badge"
+                id="alert-count">0</span></div>
+
+        <div class="nav-section">Liability Portfolio</div>
+        <div class="nav-item" onclick="showPage('cabal')"><span class="nav-icon">💰</span> CABAL Accounts</div>
+        <div class="nav-item" onclick="showPage('retail')"><span class="nav-icon">🏪</span> Retail Accounts</div>
+        <div class="nav-item" onclick="showPage('public_sector')"><span class="nav-icon">🏛️</span> Public Sector</div>
+
+        <div class="nav-section">Credit & Trade</div>
+        <div class="nav-item" onclick="showPage('loans')"><span class="nav-icon">💳</span> Loans & Overdrafts <span
+                class="badge" id="loan-badge">0</span></div>
+        <div class="nav-item" onclick="showPage('cards')"><span class="nav-icon">🪙</span> Cards</div>
+        <div class="nav-item" onclick="showPage('trade')"><span class="nav-icon">🌍</span> Trade Services</div>
+
+        <div class="nav-section">Digital & Collections</div>
+        <div class="nav-item" onclick="showPage('digital')"><span class="nav-icon">📱</span> Digital Banking</div>
+        <div class="nav-item" onclick="showPage('collections')"><span class="nav-icon">🏧</span> Collections</div>
+
+        <div class="nav-section">Analytics</div>
+        <div class="nav-item" onclick="showPage('projections')"><span class="nav-icon">📈</span> Projections</div>
+        <div class="nav-item" onclick="showPage('targets')"><span class="nav-icon">🎯</span> Targets & KPIs</div>
+        {% if user.role in ['md', 'zonal_head', 'branch_head'] %}
+        <div class="nav-item" onclick="showPage('hierarchy')"><span class="nav-icon">🗂️</span> Team Overview</div>
+        {% endif %}
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="logout-btn">🚪 Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+        <div class="topbar">
+            <div class="topbar-title" id="page-title">Dashboard</div>
+            <div class="topbar-right">
+                <button class="btn btn-outline btn-sm" id="export-btn" style="display:none"
+                    onclick="exportCurrentModule()">📤 Export Excel</button>
+                <button class="btn btn-primary btn-sm" onclick="showTargetModal()">🎯 Set Target</button>
+                <span style="font-size:12px;color:var(--text-muted)" id="last-refresh"></span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- DASHBOARD PAGE -->
+            <div class="page active" id="page-dashboard">
+                <div id="alerts-container" class="alerts-container"></div>
+                <div class="kpi-grid" id="kpi-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <div class="chart-title">Portfolio Composition (₦)</div>
+                        <div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Account Status Distribution</div>
+                        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTS PAGE -->
+            <div class="page" id="page-alerts">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🔔 All System Alerts</div>
+                    </div>
+                    <div id="all-alerts-list" style="padding:20px;"></div>
+                </div>
+            </div>
+
+            <!-- CABAL PAGE -->
+            <div class="page" id="page-cabal">
+                <div class="kpi-grid" id="cabal-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">CABAL — All Account Balances</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('cabal')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search customer..." id="cabal-search"
+                            oninput="filterTable('cabal-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('cabal-table', 4, this.value)">
+                            <option value="">All Types</option>
+                            <option value="current">Current Account</option>
+                            <option value="savings">Savings Account</option>
+                            <option value="fixed_deposit">Fixed Deposit</option>
+                            <option value="fx_dollar">FX Dollar</option>
+                            <option value="fx_pounds">FX Pounds</option>
+                            <option value="fx_euro">FX Euro</option>
+                        </select>
+                        <!-- Status Panes (replaces dropdown) -->
+                        <div style="display: flex; gap: 6px; margin-left: auto;">
+                            <button class="btn btn-sm status-pane active" data-status="active">✅ Active</button>
+                            <button class="btn btn-sm status-pane" data-status="inactive">⛔ Inactive</button>
+                            <button class="btn btn-sm status-pane" data-status="dormant">😴 Dormant</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="cabal-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Balance</th>
+                                    <th>Currency</th>
+                                    <th>Status</th>
+                                    <th>Last Txn</th>
+                                </td>
+                            </thead>
+                            <tbody id="cabal-tbody">
+                                <tr>
+                                    <td colspan="9" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOANS PAGE -->
+            <div class="page" id="page-loans">
+                <div class="kpi-grid" id="loans-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Loans, Overdrafts & Contingent Liabilities</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('loans')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..." id="loans-search"
+                            oninput="filterTable('loans-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('loans-table', 4, this.value)">
+                            <option value="">All Types</option>
+                            <option value="term_loan">Term Loan</option>
+                            <option value="overdraft">Overdraft</option>
+                            <option value="bond">Bond</option>
+                            <option value="guarantee">Guarantee</option>
+                        </select>
+                        <select class="filter-input" onchange="filterBySelect('loans-table', 7, this.value)">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="loans-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Outstanding (₦)</th>
+                                    <th>Original (₦)</th>
+                                    <th>Status</th>
+                                    <th>Repayment Date</th>
+                                    <th>Days Overdue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loans-tbody">
+                                <tr>
+                                    <td colspan="10" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRADE PAGE -->
+            <div class="page" id="page-trade">
+                <div class="kpi-grid" id="trade-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Trade Services — Form M, Form A, LC & FX</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('trade')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('trade-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('trade-table', 4, this.value)">
+                            <option value="">All Types</option>
+                            <option value="form_m">Form M</option>
+                            <option value="form_a">Form A</option>
+                            <option value="lc">Letter of Credit</option>
+                            <option value="fx_transaction">FX Transaction</option>
+                        </select>
+                        <select class="filter-input" onchange="filterBySelect('trade-table', 6, this.value)">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="dormant">Dormant</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="trade-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Reference</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Expiry Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trade-tbody">
+                                <tr>
+                                    <td colspan="8" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIGITAL PAGE -->
+            <div class="page" id="page-digital">
+                <div class="kpi-grid" id="digital-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Digital Banking — Mobile, POS, Internet, USSD</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('digital')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('digital-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('digital-table', 4, this.value)">
+                            <option value="">All Products</option>
+                            <option value="mobile_app">Mobile App</option>
+                            <option value="pos">POS Terminal</option>
+                            <option value="internet_banking">Internet Banking</option>
+                            <option value="ussd">USSD</option>
+                        </select>
+                        <select class="filter-input" onchange="filterBySelect('digital-table', 5, this.value)">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="dormant">Dormant</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="digital-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Product</th>
+                                    <th>Status</th>
+                                    <th>Terminal ID</th>
+                                    <th>Issued</th>
+                                    <th>Last Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="digital-tbody">
+                                <tr>
+                                    <td colspan="9" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARDS PAGE -->
+            <div class="page" id="page-cards">
+                <div class="kpi-grid" id="cards-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Cards — Debit & Credit</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('cards')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('cards-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('cards-table', 4, this.value)">
+                            <option value="">All Types</option>
+                            <option value="debit">Debit Card</option>
+                            <option value="credit">Credit Card</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="cards-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Credit Limit</th>
+                                    <th>Outstanding</th>
+                                    <th>Due Date</th>
+                                    <th>Days Overdue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cards-tbody">
+                                <tr>
+                                    <td colspan="10" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETAIL PAGE -->
+            <div class="page" id="page-retail">
+                <div class="kpi-grid" id="retail-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Retail Accounts</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('retail')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('retail-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('retail-table', 4, this.value)">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="dormant">Dormant</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="retail-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Status</th>
+                                    <th>Balance (₦)</th>
+                                    <th>Opened</th>
+                                    <th>Last Txn</th>
+                                </tr>
+                            </thead>
+                            <tbody id="retail-tbody">
+                                <tr>
+                                    <td colspan="8" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLLECTIONS PAGE -->
+            <div class="page" id="page-collections">
+                <div class="kpi-grid" id="collections-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Collections</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('collections')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('collections-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('collections-table', 4, this.value)">
+                            <option value="">All Types</option>
+                            <option value="received">Received</option>
+                            <option value="paid">Paid</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="collections-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Type</th>
+                                    <th>Amount (₦)</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="collections-tbody">
+                                <tr>
+                                    <td colspan="7" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PUBLIC SECTOR PAGE -->
+            <div class="page" id="page-public_sector">
+                <div class="kpi-grid" id="ps-kpis"></div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Public Sector Accounts</div>
+                        <button class="btn btn-export btn-sm" onclick="exportModule('public_sector')">📤 Export</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" class="filter-input" placeholder="🔍 Search..."
+                            oninput="filterTable('ps-table', this.value)">
+                        <select class="filter-input" onchange="filterBySelect('ps-table', 4, this.value)">
+                            <option value="">All Sectors</option>
+                            <option value="federal">Federal</option>
+                            <option value="state">State</option>
+                            <option value="local">Local</option>
+                            <option value="parastatal">Parastatal</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="ps-table">
+                            <thead>
+                                <tr>
+                                    <th>Institution</th>
+                                    <th>Account No.</th>
+                                    <th>RM</th>
+                                    <th>Branch</th>
+                                    <th>Sector</th>
+                                    <th>Balance (₦)</th>
+                                    <th>Status</th>
+                                    <th>Opened</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ps-tbody">
+                                <tr>
+                                    <td colspan="8" class="loading">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROJECTIONS PAGE -->
+            <div class="page" id="page-projections">
+                <!-- Focus Advice Card -->
+                <div class="advice-card" id="proj-advice-card" style="display: none;">
+                    <div class="advice-icon">💡</div>
+                    <div class="advice-content">
+                        <div class="advice-title">Strategic Focus Advice</div>
+                        <div class="advice-text" id="proj-advice-text">Analyzing portfolio trends...</div>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Grid (5 categories: DDA, Savings, Fixed Deposit, FX, YTD Income) -->
+                <div class="proj-cards" id="proj-summary">
+                    <!-- Will be dynamically populated with 5 cards -->
+                </div>
+
+                <!-- Consolidated Projection Chart (Full Width) -->
+                <div class="chart-grid">
+                    <div class="chart-card" style="grid-column: span 2;">
+                        <div class="chart-title">Consolidated Portfolio Growth Projection (₦)</div>
+                        <div class="chart-wrap" style="height:350px;"><canvas id="consProjChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Product-Specific Grid of 5 Charts -->
+                <div class="proj-charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-title">DDA (Current) Projection</div>
+                        <div class="chart-wrap" style="height:200px;"><canvas id="ddaChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Savings Projection</div>
+                        <div class="chart-wrap" style="height:200px;"><canvas id="savChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Fixed Deposit Projection</div>
+                        <div class="chart-wrap" style="height:200px;"><canvas id="fdChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">FX Deposits Projection</div>
+                        <div class="chart-wrap" style="height:200px;"><canvas id="fxChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-title">Income (Collections) Projection</div>
+                        <div class="chart-wrap" style="height:200px;"><canvas id="incChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARGETS PAGE -->
+            <div class="page" id="page-targets">
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <div class="card-title">🎯 Performance Targets vs Actuals</div>
+                        <button class="btn btn-primary btn-sm" onclick="showTargetModal()">+ Set New Target</button>
+                    </div>
+                    <div class="card-body" style="padding:20px;">
+                        <div class="targets-grid" id="targets-grid">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HIERARCHY PAGE -->
+            <div class="page" id="page-hierarchy">
+                <div id="hier-breadcrumb"
+                    style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;"></div>
+                <div id="hier-main-view">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" id="hier-title">Team Overview</div>
+                        </div>
+                        <div class="card-body" style="padding:20px;">
+                            <div class="hier-grid" id="hier-grid">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rm-detail-panel" style="display:none;">
+                    <div id="rm-detail-kpis" class="kpi-grid" style="margin-bottom:20px;"></div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;" id="rm-detail-tabs"></div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" id="rm-detail-table-title">—</div>
+                            <button class="btn btn-export btn-sm" id="rm-detail-export-btn">📤 Export</button>
+                        </div>
+                        <div class="filter-bar">
+                            <input type="text" class="filter-input" placeholder="🔍 Search..."
+                                oninput="filterTable('rm-detail-table', this.value)">
+                        </div>
+                        <div class="table-wrap">
+                            <table id="rm-detail-table">
+                                <thead id="rm-detail-thead"></thead>
+                                <tbody id="rm-detail-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- content -->
+    </main>
+
+    <!-- TARGET MODAL -->
+    <div class="modal-overlay" id="target-modal">
+        <div class="modal">
+            <h3>🎯 Set Performance Target</h3>
+            <div class="form-group">
+                <label>Metric</label>
+                <select class="form-group" id="target-metric"
+                    style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+                    <option value="total_liabilities">Total Liabilities (CABAL)</option>
+                    <option value="total_loans">Total Loans Outstanding</option>
+                    <option value="digital_onboarding">Digital Onboarding</option>
+                    <option value="trade_volume">Trade Volume</option>
+                    <option value="collections">Collections</option>
+                    <option value="retail_accounts">Retail Accounts</option>
+                    <option value="new_accounts">New Accounts (Account Opening)</option>
+                    <option value="nxp_active">Active NXP Trackers</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Period</label>
+                    <select id="target-period"
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" id="target-year" value="2025" min="2024" max="2030"
+                        style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Target Value (₦)</label>
+                <input type="number" id="target-value" placeholder="e.g. 500000000"
+                    style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px;">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTarget()">Save Target</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fmt = n => n >= 1e9 ? `₦${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `₦${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `₦${(n / 1e3).toFixed(0)}K` : `₦${n?.toFixed(0) || 0}`;
+        const fmtN = n => new Intl.NumberFormat('en-NG').format(Math.round(n || 0));
+        const statusBadge = s => `<span class="badge-status badge-${s}">${s}</span>`;
+        let currentPage = 'dashboard';
+        let charts = {};
+        let dashData = null;
+        let cabalFullData = []; // store all CABAL records for status panes
+
+        // DASHBOARD
+        async function loadDashboard() {
+            const res = await fetch('/api/dashboard/summary');
+            dashData = await res.json();
+
+            document.getElementById('alert-count').textContent = dashData.alerts.length;
+            document.getElementById('loan-badge').textContent = dashData.overdue_loans + dashData.loans_due_soon;
+
+            const kpis = [
+                { label: 'Total Liabilities', val: fmt(dashData.total_liabilities), sub: 'All CABAL accounts', icon: '💰', cls: 'green' },
+                { label: 'Total Loans', val: fmt(dashData.total_loans), sub: 'Outstanding balance', icon: '📋', cls: '' },
+                { label: 'Overdue Loans', val: dashData.overdue_loans, sub: 'Requires attention', icon: '⚠️', cls: 'red' },
+                { label: 'Due in 3 Days', val: dashData.loans_due_soon, sub: 'Upcoming repayments', icon: '🔔', cls: 'gold' },
+                { label: 'Digital Active', val: fmtN(dashData.digital_active), sub: 'Active digital products', icon: '📱', cls: 'blue' },
+                { label: 'Collections MTD', val: fmt(dashData.collections_mtd), sub: 'This month', icon: '🏧', cls: 'green' },
+                { label: 'Credit Card Overdue', val: dashData.credit_card_overdue, sub: 'Overdue obligations', icon: '💳', cls: dashData.credit_card_overdue > 0 ? 'red' : '' },
+                { label: 'Public Sector', val: fmt(dashData.public_sector_balance), sub: 'Total balances', icon: '🏛️', cls: 'gold' },
+                { label: 'Retail Accounts', val: fmtN(dashData.retail_total), sub: `${dashData.retail_active} active`, icon: '🏪', cls: '' },
+                { label: 'Trade Dormant', val: dashData.trade_dormant, sub: 'Dormant trade services', icon: '🌍', cls: dashData.trade_dormant > 0 ? 'gold' : '' },
+                // NEW KPIs
+                { label: 'New Accounts (MTD)', val: fmtN(dashData.new_accounts), sub: 'CABAL + Retail', icon: '📂', cls: 'blue' },
+                { label: 'Trade Volume', val: fmt(dashData.trade_volume), sub: 'Total trade amount (NGN)', icon: '🚢', cls: 'gold' },
+                { label: 'Active NXP', val: fmtN(dashData.nxp_active), sub: 'Pending/Approved', icon: '📝', cls: 'green' },
+            ];
+
+            document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+        <div class="kpi-card ${k.cls}">
+            <span class="kpi-icon">${k.icon}</span>
+            <div class="kpi-label">${k.label}</div>
+            <div class="kpi-value">${k.val}</div>
+            <div class="kpi-sub">${k.sub}</div>
+        </div>`).join('');
+
+            const ac = document.getElementById('alerts-container');
+            const urgent = dashData.alerts.slice(0, 5);
+            ac.innerHTML = urgent.map(a => `<div class="alert-item alert-${a.type}">${a.icon} ${a.message}</div>`).join('');
+
+            buildPortfolioChart(dashData);
+            buildStatusChart();
+            document.getElementById('last-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString('en-NG');
+        }
+
+        function buildPortfolioChart(data) {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            if (charts.portfolio) charts.portfolio.destroy();
+            charts.portfolio = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Liabilities (CABAL)', 'Loans Outstanding', 'Collections MTD', 'Public Sector'],
+                    datasets: [{
+                        data: [data.total_liabilities, data.total_loans, data.collections_mtd * 10, data.public_sector_balance],
+                        backgroundColor: ['#00703C', '#C9982A', '#1d4ed8', '#7c3aed'],
+                        borderWidth: 3, borderColor: '#fff'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } } }
+            });
+        }
+
+        function buildStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (charts.status) charts.status.destroy();
+            charts.status = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['CABAL', 'Retail', 'Digital', 'Trade', 'Cards'],
+                    datasets: [
+                        { label: 'Active', data: [70, 60, 55, 40, 65], backgroundColor: '#00703C' },
+                        { label: 'Inactive', data: [15, 20, 25, 30, 20], backgroundColor: '#C9982A' },
+                        { label: 'Dormant', data: [15, 20, 20, 30, 15], backgroundColor: '#e2e8f0' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function renderAlerts(full) {
+            if (!dashData) { loadDashboard().then(() => renderAlerts(full)); return; }
+            const container = full ? document.getElementById('all-alerts-list') : document.getElementById('alerts-container');
+            if (!container) return;
+            if (dashData.alerts.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No alerts at this time. All systems normal.</p></div>';
+                return;
+            }
+            container.innerHTML = dashData.alerts.map(a => `<div class="alert-item alert-${a.type}">${a.icon} ${a.message}</div>`).join('');
+        }
+
+        // CABAL with status panes
+        async function loadCabal() {
+            const res = await fetch('/api/cabal');
+            const json = await res.json();
+            cabalFullData = json.data;
+
+            // Build KPIs including Inactive
+            let totals = { current: 0, savings: 0, fixed_deposit: 0, fx: 0 };
+            let statuses = { active: 0, inactive: 0, dormant: 0 };
+            json.data.forEach(r => {
+                if (r.account_type === 'current') totals.current += r.balance;
+                else if (r.account_type === 'savings') totals.savings += r.balance;
+                else if (r.account_type === 'fixed_deposit') totals.fixed_deposit += r.balance;
+                else totals.fx += r.balance;
+                statuses[r.status] = (statuses[r.status] || 0) + 1;
+            });
+            document.getElementById('cabal-kpis').innerHTML = [
+                { l: 'Current Accounts', v: fmt(totals.current), i: '🏦', c: 'green' },
+                { l: 'Savings Accounts', v: fmt(totals.savings), i: '💵', c: '' },
+                { l: 'Fixed Deposits', v: fmt(totals.fixed_deposit), i: '🔒', c: 'gold' },
+                { l: 'FX Deposits', v: fmt(totals.fx), i: '💱', c: 'blue' },
+                { l: 'Active Accounts', v: fmtN(statuses.active || 0), i: '✅', c: 'green' },
+                { l: 'Inactive Accounts', v: fmtN(statuses.inactive || 0), i: '⛔', c: (statuses.inactive || 0) > 0 ? 'gold' : '' },
+                { l: 'Dormant Accounts', v: fmtN(statuses.dormant || 0), i: '😴', c: (statuses.dormant || 0) > 0 ? 'red' : '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            // Render initial table based on active status pane
+            const activePane = document.querySelector('.status-pane.active');
+            const initialStatus = activePane ? activePane.dataset.status : 'active';
+            renderCabalTableByStatus(initialStatus);
+        }
+
+        function renderCabalTableByStatus(status) {
+            const filtered = cabalFullData.filter(row => row.status === status);
+            const tbody = document.getElementById('cabal-tbody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No ${status} accounts found</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = filtered.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.account_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+            <td class="amount text-right">₦${fmtN(r.balance)}</td>
+            <td>${r.currency}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${r.last_transaction_date || '—'}</td>
+        </tr>
+    `).join('');
+
+            // Re-apply search and type filters after new render
+            const searchVal = document.getElementById('cabal-search')?.value || '';
+            if (searchVal) filterTable('cabal-table', searchVal);
+            const typeSelect = document.querySelector('#page-cabal .filter-bar select');
+            if (typeSelect && typeSelect.value) {
+                filterBySelect('cabal-table', 4, typeSelect.value);
+            }
+        }
+
+        // Helper to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // LOANS (unchanged)
+        async function loadLoans() {
+            const res = await fetch('/api/loans');
+            const json = await res.json();
+            let termTotal = 0, odTotal = 0, contTotal = 0, overdue = 0, dueSoon = 0;
+            const today = new Date();
+            json.data.forEach(r => {
+                if (r.loan_type === 'term_loan') termTotal += r.outstanding_balance;
+                else if (r.loan_type === 'overdraft') odTotal += r.outstanding_balance;
+                else contTotal += r.outstanding_balance;
+                if (r.status === 'overdue') overdue++;
+                const rd = new Date(r.repayment_date);
+                const diff = (rd - today) / 86400000;
+                if (diff >= 0 && diff <= 3) dueSoon++;
+            });
+            document.getElementById('loans-kpis').innerHTML = [
+                { l: 'Term Loans', v: fmt(termTotal), i: '📑', c: '' },
+                { l: 'Overdrafts', v: fmt(odTotal), i: '⚡', c: 'gold' },
+                { l: 'Contingent Liabilities', v: fmt(contTotal), i: '🛡️', c: 'blue' },
+                { l: 'Overdue Loans', v: overdue, i: '⚠️', c: overdue > 0 ? 'red' : '' },
+                { l: 'Due in 3 Days', v: dueSoon, i: '⏰', c: dueSoon > 0 ? 'gold' : '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('loans-tbody').innerHTML = json.data.map(r => {
+                const dueStr = r.repayment_date ? new Date(r.repayment_date).toLocaleDateString('en-NG') : '—';
+                const rowClass = r.status === 'overdue' ? 'style="background:#fef2f2"' : '';
+                return `<tr ${rowClass}>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.loan_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+            <td class="amount text-right">₦${fmtN(r.outstanding_balance)}</td>
+            <td class="amount text-right">₦${fmtN(r.original_amount)}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${dueStr}</td>
+            <td style="${r.days_overdue > 0 ? 'color:var(--red);font-weight:600' : ''}">${r.days_overdue > 0 ? r.days_overdue + ' days' : '—'}</td>
+        </tr>`;
+            }).join('') || '<tr><td colspan="10" class="empty-state">No loans found</td></tr>';
+        }
+
+        // TRADE (unchanged)
+        async function loadTrade() {
+            const res = await fetch('/api/trade');
+            const json = await res.json();
+            let counts = { form_m: 0, form_a: 0, lc: 0, fx_transaction: 0 };
+            let dormant = 0;
+            json.data.forEach(r => { counts[r.service_type]++; if (r.status === 'dormant') dormant++; });
+            document.getElementById('trade-kpis').innerHTML = [
+                { l: 'Form M', v: counts.form_m, i: '📋', c: '' },
+                { l: 'Form A', v: counts.form_a, i: '📄', c: '' },
+                { l: 'Letters of Credit', v: counts.lc, i: '📜', c: 'blue' },
+                { l: 'FX Transactions', v: counts.fx_transaction, i: '💱', c: 'gold' },
+                { l: 'Dormant Trade', v: dormant, i: '😴', c: dormant > 0 ? 'red' : '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('trade-tbody').innerHTML = json.data.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.reference)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.service_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+            <td class="amount text-right">${r.currency} ${fmtN(r.amount)}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${r.expiry_date || '—'}</td>
+        </tr>`).join('');
+        }
+
+        // DIGITAL (unchanged)
+        async function loadDigital() {
+            const res = await fetch('/api/digital');
+            const json = await res.json();
+            let counts = { mobile_app: 0, pos: 0, internet_banking: 0, ussd: 0 };
+            let pos_inactive = 0, pos_dormant = 0;
+            json.data.forEach(r => {
+                counts[r.product_type]++;
+                if (r.product_type === 'pos' && r.status === 'inactive') pos_inactive++;
+                if (r.product_type === 'pos' && r.status === 'dormant') pos_dormant++;
+            });
+            document.getElementById('digital-kpis').innerHTML = [
+                { l: 'Mobile App Users', v: counts.mobile_app, i: '📱', c: 'green' },
+                { l: 'POS Issued', v: counts.pos, i: '🏧', c: '' },
+                { l: 'POS Inactive/Dormant', v: pos_inactive + pos_dormant, i: '⚠️', c: pos_inactive + pos_dormant > 0 ? 'red' : '' },
+                { l: 'Internet Banking', v: counts.internet_banking, i: '💻', c: 'blue' },
+                { l: 'USSD Users', v: counts.ussd, i: '📞', c: 'gold' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('digital-tbody').innerHTML = json.data.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.product_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${r.terminal_id || '—'}</td>
+            <td>${r.issued_date || '—'}</td>
+            <td>${r.last_activity_date || '—'}</td>
+        </tr>`).join('');
+        }
+
+        // CARDS (unchanged)
+        async function loadCards() {
+            const res = await fetch('/api/cards');
+            const json = await res.json();
+            let debit = 0, credit = 0, overdue = 0, outstanding = 0;
+            json.data.forEach(r => {
+                if (r.card_type === 'debit') debit++;
+                else { credit++; outstanding += r.outstanding_balance; }
+                if (r.is_overdue) overdue++;
+            });
+            document.getElementById('cards-kpis').innerHTML = [
+                { l: 'Debit Cards', v: debit, i: '💳', c: '' },
+                { l: 'Credit Cards', v: credit, i: '🏦', c: 'blue' },
+                { l: 'Credit Outstanding', v: fmt(outstanding), i: '💰', c: 'gold' },
+                { l: 'Overdue Credit', v: overdue, i: '⚠️', c: overdue > 0 ? 'red' : '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('cards-tbody').innerHTML = json.data.map(r => `
+        <tr style="${r.is_overdue ? 'background:#fef2f2' : ''}">
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.card_type === 'credit' ? '💳 Credit' : '🏧 Debit'}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td class="amount text-right">${r.credit_limit > 0 ? '₦' + fmtN(r.credit_limit) : '—'}</td>
+            <td class="amount text-right" style="${r.is_overdue ? 'color:var(--red);font-weight:600' : ''}">${r.outstanding_balance > 0 ? '₦' + fmtN(r.outstanding_balance) : '—'}</td>
+            <td>${r.payment_due_date || '—'}</td>
+            <td style="${r.days_overdue > 0 ? 'color:var(--red);font-weight:600' : ''}">${r.days_overdue > 0 ? r.days_overdue + ' days' : '—'}</td>
+        </tr>`).join('');
+        }
+
+        // RETAIL (unchanged)
+        async function loadRetail() {
+            const res = await fetch('/api/retail');
+            const json = await res.json();
+            let active = 0, inactive = 0, dormant = 0, total = 0;
+            json.data.forEach(r => {
+                total += r.balance;
+                if (r.status === 'active') active++;
+                else if (r.status === 'inactive') inactive++;
+                else dormant++;
+            });
+            document.getElementById('retail-kpis').innerHTML = [
+                { l: 'Total Retail Accounts', v: fmtN(json.data.length), i: '🏪', c: '' },
+                { l: 'Active', v: fmtN(active), i: '✅', c: 'green' },
+                { l: 'Inactive', v: fmtN(inactive), i: '⚠️', c: 'gold' },
+                { l: 'Dormant', v: fmtN(dormant), i: '😴', c: dormant > 0 ? 'red' : '' },
+                { l: 'Total Balance', v: fmt(total), i: '💰', c: 'blue' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('retail-tbody').innerHTML = json.data.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td class="amount text-right">₦${fmtN(r.balance)}</td>
+            <td>${r.opened_date || '—'}</td>
+            <td>${r.last_transaction_date || '—'}</td>
+        </tr>`).join('');
+        }
+
+        // COLLECTIONS (unchanged)
+        async function loadCollections() {
+            const res = await fetch('/api/collections');
+            const json = await res.json();
+            let received = 0, paid = 0, rcvAccts = new Set(), paidAccts = new Set();
+            json.data.forEach(r => {
+                if (r.collection_type === 'received') { received += r.amount; rcvAccts.add(r.account_number); }
+                else { paid += r.amount; paidAccts.add(r.account_number); }
+            });
+            document.getElementById('collections-kpis').innerHTML = [
+                { l: 'Total Collected', v: fmt(received), i: '⬇️', c: 'green' },
+                { l: 'Total Paid Out', v: fmt(paid), i: '⬆️', c: 'gold' },
+                { l: 'Accounts Receiving', v: fmtN(rcvAccts.size), i: '📥', c: 'blue' },
+                { l: 'Accounts Paying', v: fmtN(paidAccts.size), i: '📤', c: '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('collections-tbody').innerHTML = json.data.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td><span class="badge-status ${r.collection_type === 'received' ? 'badge-active' : 'badge-inactive'}">${r.collection_type}</span></td>
+            <td class="amount text-right">₦${fmtN(r.amount)}</td>
+            <td>${r.collection_date}</td>
+        </tr>`).join('');
+        }
+
+        // PUBLIC SECTOR (unchanged)
+        async function loadPublicSector() {
+            const res = await fetch('/api/public_sector');
+            const json = await res.json();
+            let total = 0, bySector = {};
+            json.data.forEach(r => {
+                total += r.balance;
+                bySector[r.sector_type] = (bySector[r.sector_type] || 0) + r.balance;
+            });
+            document.getElementById('ps-kpis').innerHTML = [
+                { l: 'Total Balance', v: fmt(total), i: '🏛️', c: 'green' },
+                { l: 'Federal', v: fmt(bySector.federal || 0), i: '🇳🇬', c: '' },
+                { l: 'State', v: fmt(bySector.state || 0), i: '📍', c: 'blue' },
+                { l: 'Parastatals', v: fmt(bySector.parastatal || 0), i: '🏢', c: 'gold' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            document.getElementById('ps-tbody').innerHTML = json.data.map(r => `
+        <tr>
+            <td><strong>${escapeHtml(r.institution_name)}</strong></td>
+            <td><code>${escapeHtml(r.account_number)}</code></td>
+            <td>${escapeHtml(r.rm_name)}</td>
+            <td>${escapeHtml(r.branch_name)}</td>
+            <td>${r.sector_type.replace(/\b\w/g, c => c.toUpperCase())}</td>
+            <td class="amount text-right">₦${fmtN(r.balance)}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${r.opened_date}</td>
+        </tr>`).join('');
+        }
+
+        // PROJECTIONS - UPDATED VERSION
+        async function loadProjections() {
+            const res = await fetch('/api/projections/detailed');
+            const proj = await res.json();
+
+            const months = proj.months || [];
+            const series = {
+                current: proj.current || [],
+                savings: proj.savings || [],
+                fixed_deposit: proj.fixed_deposit || [],
+                fx: proj.fx || [],
+                income: proj.income || []
+            };
+            const rates = proj.growth_rates || {};
+
+            document.getElementById('proj-summary').innerHTML = `
+                <div class="proj-card">
+                    <div class="proj-label">DDA (Current)</div>
+                    <div class="proj-val">${fmt(proj.current_balance || 0)}</div>
+                    <div class="proj-change">${((rates.current || 0) * 100).toFixed(1)}% monthly growth</div>
+                </div>
+                <div class="proj-card">
+                    <div class="proj-label">Savings</div>
+                    <div class="proj-val">${fmt(proj.savings_balance || 0)}</div>
+                    <div class="proj-change">${((rates.savings || 0) * 100).toFixed(1)}% monthly growth</div>
+                </div>
+                <div class="proj-card">
+                    <div class="proj-label">Fixed Deposit</div>
+                    <div class="proj-val">${fmt(proj.fixed_balance || 0)}</div>
+                    <div class="proj-change">${((rates.fixed_deposit || 0) * 100).toFixed(1)}% monthly growth</div>
+                </div>
+                <div class="proj-card">
+                    <div class="proj-label">FX Deposits</div>
+                    <div class="proj-val">${fmt(proj.fx_balance || 0)}</div>
+                    <div class="proj-change">${((rates.fx || 0) * 100).toFixed(1)}% monthly growth</div>
+                </div>
+                <div class="proj-card">
+                    <div class="proj-label">Income YTD</div>
+                    <div class="proj-val">${fmt(proj.income_ytd || 0)}</div>
+                    <div class="proj-change">${((rates.income || 0) * 100).toFixed(1)}% monthly growth</div>
+                </div>
+            `;
+
+            document.getElementById('proj-advice-text').textContent =
+                proj.advice || 'Projection data loaded.';
+            document.getElementById('proj-advice-card').style.display = 'flex';
+
+            const moneyTooltip = scale => ({
+                callbacks: {
+                    label: ctx => `${ctx.dataset.label}: ₦${fmtN(ctx.raw * scale)}`
+                }
+            });
+
+            const makeLineChart = (key, canvasId, label, data, color, scale) => {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                if (charts[key]) charts[key].destroy();
+
+                charts[key] = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label,
+                            data: data.map(v => v / scale),
+                            borderColor: color,
+                            backgroundColor: `${color}20`,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: moneyTooltip(scale)
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: scale === 1e9 ? '₦ Billions' : '₦ Millions'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const consCanvas = document.getElementById('consProjChart');
+            if (consCanvas) {
+                if (charts.consProj) charts.consProj.destroy();
+
+                charts.consProj = new Chart(consCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'DDA (Current)',
+                                data: series.current.map(v => v / 1e9),
+                                borderColor: '#00703C',
+                                backgroundColor: 'rgba(0,112,60,0.08)',
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Savings',
+                                data: series.savings.map(v => v / 1e9),
+                                borderColor: '#1d4ed8',
+                                backgroundColor: 'rgba(29,78,216,0.08)',
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Fixed Deposit',
+                                data: series.fixed_deposit.map(v => v / 1e9),
+                                borderColor: '#C9982A',
+                                backgroundColor: 'rgba(201,152,42,0.08)',
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'FX Deposits',
+                                data: series.fx.map(v => v / 1e9),
+                                borderColor: '#7c3aed',
+                                backgroundColor: 'rgba(124,58,237,0.08)',
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Income (Collections)',
+                                data: series.income.map(v => v / 1e6),
+                                borderColor: '#dc2626',
+                                backgroundColor: 'rgba(220,38,38,0.08)',
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 4,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => {
+                                        const scale = ctx.dataset.yAxisID === 'y1' ? 1e6 : 1e9;
+                                        return `${ctx.dataset.label}: ₦${fmtN(ctx.raw * scale)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Deposits (₦ Billions)'
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Income (₦ Millions)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            makeLineChart('dda', 'ddaChart', 'DDA (Current)', series.current, '#00703C', 1e9);
+            makeLineChart('sav', 'savChart', 'Savings', series.savings, '#1d4ed8', 1e9);
+            makeLineChart('fd', 'fdChart', 'Fixed Deposit', series.fixed_deposit, '#C9982A', 1e9);
+            makeLineChart('fx', 'fxChart', 'FX Deposits', series.fx, '#7c3aed', 1e9);
+            makeLineChart('inc', 'incChart', 'Income (Collections)', series.income, '#dc2626', 1e6);
+        }
+
+        // TARGETS (updated with new metrics)
+        async function loadTargets() {
+            const res = await fetch('/api/targets');
+            const json = await res.json();
+            const sumRes = await fetch('/api/dashboard/summary');
+            const summary = await sumRes.json();
+
+            const actuals = {
+                total_liabilities: summary.total_liabilities,
+                total_loans: summary.total_loans,
+                digital_onboarding: summary.digital_active,
+                collections: summary.collections_mtd,
+                retail_accounts: summary.retail_total,
+                new_accounts: summary.new_accounts,
+                trade_volume: summary.trade_volume,
+                nxp_active: summary.nxp_active
+            };
+
+            const metricLabels = {
+                total_liabilities: 'Total Liabilities',
+                total_loans: 'Total Loans',
+                digital_onboarding: 'Digital Onboarding',
+                trade_volume: 'Trade Volume',
+                collections: 'Collections MTD',
+                retail_accounts: 'Retail Accounts',
+                new_accounts: 'New Accounts (MTD)',
+                nxp_active: 'Active NXP Trackers'
+            };
+
+            const targets = json.data;
+            if (!targets.length) {
+                document.getElementById('targets-grid').innerHTML = `<div class="empty-state"><div class="icon">🎯</div><p>No targets set. Click "Set New Target" to begin.</p></div>`;
+                return;
+            }
+
+            document.getElementById('targets-grid').innerHTML = targets.slice(0, 12).map(t => {
+                const actual = actuals[t.metric] || 0;
+                const pct = Math.min((actual / t.target_value * 100), 150);
+                const isOver = pct > 100;
+                return `<div class="target-card">
+            <div class="target-metric">📊 ${metricLabels[t.metric] || t.metric} (${t.period})</div>
+            <div class="target-pct ${isOver ? 'over' : ''}">${pct.toFixed(1)}%</div>
+            <div class="target-progress"><div class="target-bar ${isOver ? 'over' : ''}" style="width:${Math.min(pct, 100)}%"></div></div>
+            <div class="target-nums">
+                <span>Actual: ${fmt(actual)}</span>
+                <span>Target: ${fmt(t.target_value)}</span>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+        // ========== HIERARCHY (unchanged) ==========
+        let hierState = [];
+        let currentRmData = null;
+        let currentRmModule = 'cabal';
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${page}`)?.classList.add('active');
+            if (window.event && window.event.target?.closest) {
+                window.event.target.closest('.nav-item')?.classList.add('active');
+            }
+            currentPage = page;
+
+            const titles = {
+                dashboard: 'Dashboard Overview', alerts: 'System Alerts',
+                cabal: 'CABAL Accounts', loans: 'Loans & Credit',
+                trade: 'Trade Services', digital: 'Digital Banking',
+                cards: 'Cards Portfolio', retail: 'Retail Banking',
+                collections: 'Collections', public_sector: 'Public Sector',
+                projections: 'Projections & Forecasting', targets: 'Targets & KPIs',
+                hierarchy: 'Team Overview'
+            };
+            document.getElementById('page-title').textContent = titles[page] || page;
+
+            const exportModules = ['cabal', 'loans', 'trade', 'digital', 'cards', 'retail', 'collections', 'public_sector'];
+            document.getElementById('export-btn').style.display = exportModules.includes(page) ? 'block' : 'none';
+
+            const loaders = {
+                cabal: loadCabal, loans: loadLoans, trade: loadTrade,
+                digital: loadDigital, cards: loadCards, retail: loadRetail,
+                collections: loadCollections, public_sector: loadPublicSector,
+                projections: loadProjections, targets: loadTargets, hierarchy: loadHierarchy,
+                alerts: () => renderAlerts(true)
+            };
+            if (loaders[page]) loaders[page]();
+        }
+
+        async function loadHierarchy() {
+            hierState = [];
+            document.getElementById('rm-detail-panel').style.display = 'none';
+            document.getElementById('hier-main-view').style.display = 'block';
+            const res = await fetch('/api/hierarchy');
+            const json = await res.json();
+            renderHierLevel(json);
+        }
+
+        function renderHierLevel(json) {
+            document.getElementById('rm-detail-panel').style.display = 'none';
+            document.getElementById('hier-main-view').style.display = 'block';
+            renderBreadcrumb();
+
+            const grid = document.getElementById('hier-grid');
+            const title = document.getElementById('hier-title');
+
+            if (json.level === 'zones') {
+                title.textContent = `All Zones (${json.items.length})`;
+                grid.innerHTML = json.items.map(z => `
+            <div class="hier-card" onclick="drillToZone(${z.id}, '${z.name}')">
+                <div class="hier-badge zone">ZONE</div>
+                <div class="hier-name">🗺️ ${z.name}</div>
+                <div class="hier-sub">${z.code}</div>
+                <div class="hier-metrics">
+                    <div class="hier-metric"><div class="val">${fmt(z.liabilities)}</div><div class="lbl">Liabilities</div></div>
+                    <div class="hier-metric"><div class="val">${fmt(z.loans)}</div><div class="lbl">Loans</div></div>
+                    <div class="hier-metric"><div class="val">${z.branches}</div><div class="lbl">Branches</div></div>
+                    <div class="hier-metric"><div class="val">${z.rms}</div><div class="lbl">RMs</div></div>
+                </div>
+                <div class="hier-drill">Click to view branches →</div>
+            </div>`).join('');
+            } else if (json.level === 'branches') {
+                title.textContent = `Branches (${json.items.length})`;
+                grid.innerHTML = json.items.map(b => `
+            <div class="hier-card" onclick="drillToBranch(${b.id}, '${b.name}')">
+                <div class="hier-badge branch">BRANCH</div>
+                <div class="hier-name">🏢 ${b.name}</div>
+                <div class="hier-sub">${b.code}${b.zone_name ? ' · ' + b.zone_name : ''}</div>
+                <div class="hier-metrics">
+                    <div class="hier-metric"><div class="val">${fmt(b.liabilities)}</div><div class="lbl">Liabilities</div></div>
+                    <div class="hier-metric"><div class="val">${fmt(b.loans)}</div><div class="lbl">Loans</div></div>
+                    <div class="hier-metric"><div class="val ${b.overdue_loans > 0 ? 'red' : ''}">${b.overdue_loans}</div><div class="lbl">Overdue</div></div>
+                    <div class="hier-metric"><div class="val">${b.rms}</div><div class="lbl">RMs</div></div>
+                </div>
+                <div class="hier-drill">Click to view RMs →</div>
+            </div>`).join('');
+            } else if (json.level === 'rms') {
+                const branchName = json.branch?.name || 'Branch';
+                title.textContent = `Relationship Managers — ${branchName} (${json.items.length})`;
+                grid.innerHTML = json.items.map(r => `
+            <div class="hier-card" onclick="drillToRM(${r.id}, '${r.full_name}')">
+                <div class="hier-badge rm">RM</div>
+                <div class="hier-name">👤 ${r.full_name}</div>
+                <div class="hier-sub">${r.branch_name || branchName}</div>
+                <div class="hier-metrics">
+                    <div class="hier-metric"><div class="val">${fmt(r.liabilities)}</div><div class="lbl">Liabilities</div></div>
+                    <div class="hier-metric"><div class="val">${fmt(r.loans)}</div><div class="lbl">Loans</div></div>
+                    <div class="hier-metric"><div class="val ${r.overdue_loans > 0 ? 'red' : ''}">${r.overdue_loans}</div><div class="lbl">Overdue</div></div>
+                    <div class="hier-metric"><div class="val">${r.digital_active}</div><div class="lbl">Digital</div></div>
+                </div>
+                <div class="hier-drill">Click to view full portfolio →</div>
+            </div>`).join('');
+            } else {
+                grid.innerHTML = '<div class="empty-state"><div class="icon">🔒</div><p>No hierarchy data for your role.</p></div>';
+            }
+        }
+
+        async function drillToZone(zoneId, zoneName) {
+            hierState.push({ label: zoneName, fn: () => drillToZone(zoneId, zoneName) });
+            document.getElementById('hier-grid').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await fetch(`/api/hierarchy/zone/${zoneId}/branches`);
+            renderHierLevel(await res.json());
+        }
+
+        async function drillToBranch(branchId, branchName) {
+            hierState.push({ label: branchName, fn: () => drillToBranch(branchId, branchName) });
+            document.getElementById('hier-grid').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            const res = await fetch(`/api/hierarchy/branch/${branchId}/rms`);
+            renderHierLevel(await res.json());
+        }
+
+        async function drillToRM(rmId, rmName) {
+            hierState.push({ label: rmName, fn: () => drillToRM(rmId, rmName) });
+            renderBreadcrumb();
+            document.getElementById('hier-main-view').style.display = 'none';
+            document.getElementById('rm-detail-panel').style.display = 'block';
+            document.getElementById('rm-detail-kpis').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            const res = await fetch(`/api/rm_detail/${rmId}`);
+            currentRmData = await res.json();
+            document.getElementById('hier-title').textContent = `Portfolio: ${currentRmData.rm.full_name}`;
+            renderRMDetail('cabal');
+        }
+
+        function renderBreadcrumb() {
+            const bc = document.getElementById('hier-breadcrumb');
+            const crumbs = [`<span class="bc-item bc-home" onclick="loadHierarchy()">🏠 Home</span>`];
+            hierState.forEach((s, i) => {
+                crumbs.push(`<span class="bc-sep">›</span>`);
+                if (i < hierState.length - 1) {
+                    crumbs.push(`<span class="bc-item bc-link" onclick="hierGoBack(${i + 1})">${escapeHtml(s.label)}</span>`);
+                } else {
+                    crumbs.push(`<span class="bc-item bc-current">${escapeHtml(s.label)}</span>`);
+                }
+            });
+            bc.innerHTML = crumbs.join('');
+        }
+
+        function hierGoBack(toIndex) {
+            hierState = hierState.slice(0, toIndex);
+            document.getElementById('rm-detail-panel').style.display = 'none';
+            document.getElementById('hier-main-view').style.display = 'block';
+            if (toIndex === 0) { loadHierarchy(); return; }
+            hierState[toIndex - 1].fn();
+            hierState = hierState.slice(0, toIndex);
+            renderBreadcrumb();
+        }
+
+        function renderRMDetail(module) {
+            currentRmModule = module;
+            if (!currentRmData) return;
+            const d = currentRmData;
+
+            const s = d.summary;
+            document.getElementById('rm-detail-kpis').innerHTML = [
+                { l: 'Total Liabilities', v: fmt(s.total_liabilities), i: '💰', c: 'green' },
+                { l: 'Total Loans', v: fmt(s.total_loans), i: '📋', c: '' },
+                { l: 'Overdue Loans', v: s.overdue_loans, i: '⚠️', c: s.overdue_loans > 0 ? 'red' : '' },
+                { l: 'Digital Active', v: s.digital_active, i: '📱', c: 'blue' },
+                { l: 'Collections', v: fmt(s.collections), i: '🏧', c: 'green' },
+                { l: 'Credit Overdue', v: s.credit_overdue, i: '💳', c: s.credit_overdue > 0 ? 'red' : '' },
+                { l: 'Public Sector', v: fmt(s.public_sector_balance), i: '🏛️', c: 'gold' },
+                { l: 'Retail Accounts', v: s.retail_count, i: '🏪', c: '' },
+            ].map(k => `<div class="kpi-card ${k.c}"><span class="kpi-icon">${k.i}</span><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div></div>`).join('');
+
+            const tabs = ['cabal', 'loans', 'trade', 'digital', 'cards', 'retail', 'collections', 'public_sector'];
+            const tabLabels = { cabal: '💰 CABAL', loans: '📋 Loans', trade: '🌍 Trade', digital: '📱 Digital', cards: '💳 Cards', retail: '🏪 Retail', collections: '🏧 Collections', public_sector: '🏛️ Public Sector' };
+            document.getElementById('rm-detail-tabs').innerHTML = tabs.map(t =>
+                `<button class="btn btn-sm ${t === module ? 'btn-primary' : 'btn-outline'}" onclick="renderRMDetail('${t}')">${tabLabels[t]}</button>`
+            ).join('');
+
+            const configs = {
+                cabal: { title: 'CABAL — Account Balances', heads: ['Customer', 'Account No.', 'Type', 'Balance', 'Currency', 'Status', 'Last Txn'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${r.account_type.replace(/_/g, ' ')}</td><td class="text-right">₦${fmtN(r.balance)}</td><td>${r.currency}</td><td>${statusBadge(r.status)}</td><td>${r.last_transaction_date || '—'}</td>` },
+                loans: { title: 'Loans & Contingent Liabilities', heads: ['Customer', 'Account No.', 'Type', 'Outstanding', 'Original', 'Status', 'Repayment Date', 'Days Overdue'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${r.loan_type.replace(/_/g, ' ')}</td><td class="text-right" style="${r.status === 'overdue' ? 'color:var(--red);font-weight:600' : ''}">₦${fmtN(r.outstanding_balance)}</td><td class="text-right">₦${fmtN(r.original_amount)}</td><td>${statusBadge(r.status)}</td><td>${r.repayment_date || '—'}</td><td style="${r.days_overdue > 0 ? 'color:var(--red);font-weight:600' : ''}">${r.days_overdue > 0 ? r.days_overdue + ' days' : '—'}</td>` },
+                trade: { title: 'Trade Services', heads: ['Customer', 'Reference', 'Type', 'Amount', 'Currency', 'Status', 'Expiry'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.reference)}</code></td><td>${r.service_type.replace(/_/g, ' ')}</td><td class="text-right">${fmtN(r.amount)}</td><td>${r.currency}</td><td>${statusBadge(r.status)}</td><td>${r.expiry_date || '—'}</td>` },
+                digital: { title: 'Digital Banking Products', heads: ['Customer', 'Account No.', 'Product', 'Status', 'Terminal ID', 'Issued', 'Last Activity'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${r.product_type.replace(/_/g, ' ')}</td><td>${statusBadge(r.status)}</td><td>${r.terminal_id || '—'}</td><td>${r.issued_date || '—'}</td><td>${r.last_activity_date || '—'}</td>` },
+                cards: { title: 'Cards Portfolio', heads: ['Customer', 'Account No.', 'Type', 'Status', 'Credit Limit', 'Outstanding', 'Due Date', 'Days Overdue'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${r.card_type}</td><td>${statusBadge(r.status)}</td><td class="text-right">${r.credit_limit > 0 ? '₦' + fmtN(r.credit_limit) : '—'}</td><td class="text-right" style="${r.is_overdue ? 'color:var(--red);font-weight:600' : ''}">${r.outstanding_balance > 0 ? '₦' + fmtN(r.outstanding_balance) : '—'}</td><td>${r.payment_due_date || '—'}</td><td style="${r.days_overdue > 0 ? 'color:var(--red);font-weight:600' : ''}">${r.days_overdue > 0 ? r.days_overdue + ' days' : '—'}</td>` },
+                retail: { title: 'Retail Accounts', heads: ['Customer', 'Account No.', 'Status', 'Balance', 'Opened', 'Last Txn'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${statusBadge(r.status)}</td><td class="text-right">₦${fmtN(r.balance)}</td><td>${r.opened_date || '—'}</td><td>${r.last_transaction_date || '—'}</td>` },
+                collections: { title: 'Collections', heads: ['Customer', 'Account No.', 'Type', 'Amount', 'Date'], row: r => `<td>${escapeHtml(r.customer_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td><span class="badge-status ${r.collection_type === 'received' ? 'badge-active' : 'badge-inactive'}">${r.collection_type}</span></td><td class="text-right">₦${fmtN(r.amount)}</td><td>${r.collection_date}</td>` },
+                public_sector: { title: 'Public Sector Accounts', heads: ['Institution', 'Account No.', 'Sector', 'Balance', 'Status', 'Opened'], row: r => `<td>${escapeHtml(r.institution_name)}</td><td><code>${escapeHtml(r.account_number)}</code></td><td>${r.sector_type}</td><td class="text-right">₦${fmtN(r.balance)}</td><td>${statusBadge(r.status)}</td><td>${r.opened_date || '—'}</td>` }
+            };
+
+            const cfg = configs[module];
+            document.getElementById('rm-detail-table-title').textContent = cfg.title;
+            document.getElementById('rm-detail-export-btn').onclick = () => exportRMModule(d.rm.id, module);
+            document.getElementById('rm-detail-thead').innerHTML = `<tr>${cfg.heads.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            const rows = d[module] || [];
+            document.getElementById('rm-detail-tbody').innerHTML = rows.length
+                ? rows.map(r => `<tr>${cfg.row(r)}</tr>`).join('')
+                : `<tr><td colspan="${cfg.heads.length}" class="empty-state"><div class="icon">📭</div>No records</td></tr>`;
+        }
+
+        function exportRMModule(rmId, module) {
+            window.location.href = `/api/export/${module}?rm_id=${rmId}`;
+        }
+
+        // TABLE FILTERS
+        function filterTable(tableId, query) {
+            const tbody = document.querySelector(`#${tableId} tbody`) || document.getElementById(tableId)?.querySelector('tbody');
+            if (!tbody) return;
+            const q = query.toLowerCase();
+            tbody.querySelectorAll('tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        function filterBySelect(tableId, colIdx, val) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            tbody.querySelectorAll('tr').forEach(row => {
+                const cell = row.cells[colIdx];
+                if (!val || (cell && cell.textContent.toLowerCase().includes(val.toLowerCase()))) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // EXPORT
+        function exportModule(module) {
+            window.location.href = `/api/export/${module}`;
+        }
+
+        function exportCurrentModule() {
+            const modules = ['cabal', 'loans', 'trade', 'digital', 'cards', 'retail', 'collections', 'public_sector'];
+            if (modules.includes(currentPage)) exportModule(currentPage);
+        }
+
+        // TARGETS MODAL
+        function showTargetModal() {
+            document.getElementById('target-modal').classList.add('open');
+        }
+        function closeModal() {
+            document.getElementById('target-modal').classList.remove('open');
+        }
+        async function saveTarget() {
+            const metric = document.getElementById('target-metric').value;
+            const period = document.getElementById('target-period').value;
+            const year = parseInt(document.getElementById('target-year').value);
+            const value = parseFloat(document.getElementById('target-value').value);
+            if (!value) { alert('Please enter a target value'); return; }
+            const today = new Date();
+            const pval = period === 'monthly' ? today.getMonth() + 1 : period === 'quarterly' ? Math.ceil((today.getMonth() + 1) / 3) : 0;
+            await fetch('/api/targets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity_type: 'rm', entity_id: 1, metric, period, year, period_value: pval, target_value: value })
+            });
+            closeModal();
+            if (currentPage === 'targets') loadTargets();
+            alert('✅ Target saved successfully!');
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', function () {
+            // Attach status pane click handlers
+            document.querySelectorAll('.status-pane').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    const status = this.dataset.status;
+                    document.querySelectorAll('.status-pane').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    if (cabalFullData.length) {
+                        renderCabalTableByStatus(status);
+                    } else {
+                        // If data not yet loaded, wait a bit and then render
+                        setTimeout(() => {
+                            if (cabalFullData.length) renderCabalTableByStatus(status);
+                        }, 300);
+                    }
+                });
+            });
+
+            loadDashboard();
+            setInterval(loadDashboard, 60000);
+            document.getElementById('last-refresh').textContent = 'Loading...';
+        });
+    </script>
+</body>
+
+</html>
