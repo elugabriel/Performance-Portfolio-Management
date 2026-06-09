@@ -1502,6 +1502,28 @@
 
             <!-- TARGETS PAGE -->
             <div class="page" id="page-targets">
+                <!-- KPI Summary Cards: Account Opening, Trade Services, NXP -->
+                <div class="kpi-grid" id="target-kpi-grid" style="margin-bottom:24px;">
+                    <div class="kpi-card blue" style="border-left:4px solid var(--blue);">
+                        <span class="kpi-icon">📂</span>
+                        <div class="kpi-label">Account Opening (MTD)</div>
+                        <div class="kpi-value" id="target-kpi-accounts">—</div>
+                        <div class="kpi-sub">New CABAL + Retail accounts</div>
+                    </div>
+                    <div class="kpi-card gold" style="border-left:4px solid var(--gold);">
+                        <span class="kpi-icon">🚢</span>
+                        <div class="kpi-label">Trade Services Volume</div>
+                        <div class="kpi-value" id="target-kpi-trade">—</div>
+                        <div class="kpi-sub">Total trade amount (NGN equiv.)</div>
+                    </div>
+                    <div class="kpi-card green" style="border-left:4px solid var(--green);">
+                        <span class="kpi-icon">📝</span>
+                        <div class="kpi-label">Active NXP</div>
+                        <div class="kpi-value" id="target-kpi-nxp">—</div>
+                        <div class="kpi-sub">Pending / Approved trackers</div>
+                    </div>
+                </div>
+
                 <div class="card" style="margin-bottom:20px;">
                     <div class="card-header">
                         <div class="card-title">🎯 Performance Targets vs Actuals</div>
@@ -2203,6 +2225,11 @@
             const json = await res.json();
             const sumRes = await fetch('/api/dashboard/summary');
             const summary = await sumRes.json();
+
+            // Populate the three KPI summary cards at the top of Targets page
+            document.getElementById('target-kpi-accounts').textContent = fmtN(summary.new_accounts);
+            document.getElementById('target-kpi-trade').textContent = fmt(summary.trade_volume);
+            document.getElementById('target-kpi-nxp').textContent = fmtN(summary.nxp_active);
 
             const actuals = {
                 total_liabilities: summary.total_liabilities,
