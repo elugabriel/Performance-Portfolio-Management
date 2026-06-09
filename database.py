@@ -198,6 +198,17 @@ def init_db():
         FOREIGN KEY (rm_id) REFERENCES users(id)
     )''')
 
+    # KPI Overrides (MD can hide or alter displayed KPI values)
+    c.execute('''CREATE TABLE IF NOT EXISTS kpi_overrides (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kpi_key TEXT UNIQUE NOT NULL,
+        is_hidden INTEGER DEFAULT 0,
+        override_value REAL DEFAULT NULL,
+        updated_by INTEGER,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (updated_by) REFERENCES users(id)
+    )''')
+
     conn.commit()
     conn.close()
     seed_data()
